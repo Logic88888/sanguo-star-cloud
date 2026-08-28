@@ -30,6 +30,12 @@ function parseCSV(text) {
 
 const chars = JSON.parse(readFileSync(new URL('characters.json', dataDir), 'utf8'));
 const names = new Set(chars.map((c) => c.name));
+// 黑名单：非三国时期人物
+const exclude = new Set(
+  existsSync(new URL('exclude-names.json', dataDir))
+    ? JSON.parse(readFileSync(new URL('exclude-names.json', dataDir), 'utf8'))
+    : []
+);
 const gender = new Map(chars.map((c) => [c.name, c.gender || c.sex || '']));
 // characters.json 没有 gender 字段，回查 CSV 的性别列
 const rows = parseCSV(readFileSync(csvPath, 'utf8'));
@@ -57,6 +63,7 @@ const seen = new Set(cur.map((e) => pairKey(e.a, e.b)));
 let added = 0, noMatch = 0;
 const add = (a, b, type) => {
   if (!a || !b || a === b) return;
+  if (exclude.has(a) || exclude.has(b)) return;
   if (!names.has(a) || !names.has(b)) { noMatch++; return; }
   const k = pairKey(a, b);
   if (seen.has(k)) return;

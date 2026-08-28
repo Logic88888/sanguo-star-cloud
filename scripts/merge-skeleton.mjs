@@ -6,6 +6,12 @@ import { fileURLToPath } from 'node:url';
 
 const dataDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'data');
 const full = JSON.parse(readFileSync(join(dataDir, 'characters.json'), 'utf8'));
+// 黑名单：非三国时期人物（见 remove-non-era.mjs）
+const exclude = new Set(
+  existsSync(join(dataDir, 'exclude-names.json'))
+    ? JSON.parse(readFileSync(join(dataDir, 'exclude-names.json'), 'utf8'))
+    : []
+);
 const parts = [
   ['wei', 'part-wei.json'],
   ['shu', 'part-shu.json'],
@@ -48,8 +54,8 @@ for (const [faction, file] of parts) {
       report.push(`无效条目(无姓名): ${file}`);
       continue;
     }
-    if (seen.has(e.name)) {
-      report.push(`重复跳过: ${e.name} (${file})`);
+    if (seen.has(e.name) || exclude.has(e.name)) {
+      report.push(`重复/黑名单跳过: ${e.name} (${file})`);
       continue;
     }
     seen.add(e.name);

@@ -76,11 +76,13 @@ function factionOf(fu) {
 
 const chars = JSON.parse(readFileSync(new URL('characters.json', dataDir), 'utf8'));
 const seen = new Set(chars.map((c) => c.name));
-let nextId = chars.length + 1;
+// 黑名单：非三国时期人物（见 remove-non-era.mjs）
+const exclude = new Set(JSON.parse(readFileSync(new URL('exclude-names.json', dataDir), 'utf8')));
+let nextId = chars.reduce((m, c) => Math.max(m, c.id), 0) + 1;
 let added = 0;
 for (const r of rows.slice(1)) {
   const name = (r[iName] || '').trim().replace(/\s+/g, '');
-  if (!name || seen.has(name)) continue;
+  if (!name || seen.has(name) || exclude.has(name)) continue;
   seen.add(name);
   let zi = iZi >= 0 ? clean(r[iZi]) : '';
   if (zi === name) zi = ''; // 源数据无表字时会重复姓名
