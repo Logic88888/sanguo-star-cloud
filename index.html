@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>三国星云</title>
+  <link rel="stylesheet" href="/src/style.css?v=2" />
+</head>
+<body>
+  <div id="canvas-root"></div>
+
+  <div id="ui">
+    <header id="brand">
+      <h1>三国星云</h1>
+      <p class="sub" id="stat"></p>
+    </header>
+
+    <nav id="faction-filter" aria-label="势力筛选"></nav>
+
+    <div id="search-wrap">
+      <input id="search" type="text" placeholder="搜索姓名 / 字 / 称号…" autocomplete="off" spellcheck="false" />
+      <ul id="search-list"></ul>
+    </div>
+
+    <aside id="panel" class="hidden" aria-live="polite">
+      <button id="panel-close" title="关闭" aria-label="关闭">✕</button>
+      <div id="panel-actions">
+        <button id="panel-benshen" title="把这位人物设为你的本命武将">设为本命</button>
+        <button id="panel-share" title="复制分享链接">⧉ 分享</button>
+      </div>
+      <div id="panel-body"></div>
+    </aside>
+
+    <div id="tooltip" class="hidden"></div>
+    <div id="benshin" class="hidden" title="点击寻访本命武将"></div>
+
+    <footer id="hint">拖拽旋转 · 滚轮缩放 · 点击星星查看生平</footer>
+
+    <div id="guide" class="hidden">
+      <div class="guide-card">
+        <h2>三国星雲</h2>
+        <ol>
+          <li><b>拖拽</b> —— 旋转整片星空</li>
+          <li><b>滚轮</b> —— 拉近拉远</li>
+          <li><b>点击星星</b> —— 读这位人物的生平</li>
+          <li><b>点击星空空白</b> —— 虚空寻访一位人物</li>
+          <li><b>搜索框 · 势力筛选</b> —— 快速定位三百英雄</li>
+        </ol>
+        <button id="guide-start">开 始 探 索</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
