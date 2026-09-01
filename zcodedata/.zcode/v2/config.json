@@ -1,0 +1,686 @@
+{
+  "provider": {
+    "builtin:bigmodel": {
+      "name": "Bigmodel - API Key",
+      "kind": "anthropic",
+      "options": {
+        "apiKey": "",
+        "baseURL": "https://open.bigmodel.cn/api/anthropic"
+      },
+      "enabled": true,
+      "source": "custom",
+      "models": {
+        "GLM-5.3": {
+          "reasoning": {
+            "enabled": true,
+            "variants": [
+              "low",
+              "max",
+              "high"
+            ],
+            "defaultVariant": "max"
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": false,
+            "priority": 99
+          }
+        },
+        "GLM-5.3-Flash": {
+          "reasoning": {
+            "enabled": true,
+            "variants": [
+              "low",
+              "max",
+              "high"
+            ],
+            "defaultVariant": "max"
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "video"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": false,
+            "priority": 100
+          }
+        },
+        "GLM-5-Turbo": {
+          "name": "glm-5-turbo",
+          "reasoning": {
+            "enabled": true,
+            "variants": [
+              "enabled",
+              "off"
+            ],
+            "defaultVariant": "enabled"
+          },
+          "limit": {
+            "context": 200000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": false,
+            "priority": 101
+          }
+        }
+      }
+    },
+    "builtin:zai": {
+      "name": "Z.ai - API Key",
+      "kind": "anthropic",
+      "options": {
+        "apiKey": "867e6326a1ae43f3912e55d62f76fe85.4j9yCokm7e2m0yAm",
+        "baseURL": "https://api.z.ai/api/anthropic",
+        "apiKeyRequired": true
+      },
+      "source": "custom",
+      "models": {
+        "GLM-5.3": {
+          "reasoning": {
+            "enabled": true,
+            "variants": [
+              "low",
+              "max",
+              "high"
+            ],
+            "defaultVariant": "max"
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": false,
+            "priority": 99
+          }
+        },
+        "GLM-5.3-Flash": {
+          "reasoning": {
+            "enabled": true,
+            "variants": [
+              "low",
+              "max",
+              "high"
+            ],
+            "defaultVariant": "max"
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "video"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": false,
+            "priority": 100
+          }
+        }
+      },
+      "zcode": {
+        "deletedModels": [
+          "GLM-5-Turbo",
+          "GLM-5.2"
+        ]
+      }
+    },
+    "builtin:bigmodel-coding-plan": {
+      "name": "BigModel - Coding Plan",
+      "kind": "anthropic",
+      "options": {
+        "apiKey": "",
+        "baseURL": "https://open.bigmodel.cn/api/anthropic"
+      },
+      "enabled": true,
+      "source": "custom",
+      "models": {
+        "GLM-5.3": {
+          "reasoning": {
+            "enabled": true,
+            "variants": [
+              "low",
+              "max",
+              "high"
+            ],
+            "defaultVariant": "max"
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": false,
+            "priority": 99
+          }
+        },
+        "GLM-5.3-Flash": {
+          "reasoning": {
+            "enabled": true,
+            "variants": [
+              "low",
+              "max",
+              "high"
+            ],
+            "defaultVariant": "max"
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "video"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": false,
+            "priority": 100
+          }
+        },
+        "GLM-5-Turbo": {
+          "name": "glm-5-turbo",
+          "reasoning": {
+            "enabled": true,
+            "variants": [
+              "enabled",
+              "off"
+            ],
+            "defaultVariant": "enabled"
+          },
+          "limit": {
+            "context": 200000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": false,
+            "priority": 101
+          }
+        }
+      }
+    },
+    "builtin:bigmodel-start-plan": {
+      "name": "BigModel- Coding Plan",
+      "kind": "anthropic",
+      "options": {
+        "apiKey": "",
+        "baseURL": "https://zcode.z.ai/api/v1/zcode-plan/anthropic"
+      },
+      "enabled": true,
+      "source": "custom",
+      "models": {}
+    },
+    "builtin:zai-coding-plan": {
+      "name": "Z.ai - Coding Plan",
+      "kind": "anthropic",
+      "options": {
+        "apiKey": "e16732d66cfe479f8d49aa97092f23dd.JpphqrPLdS7LL2UH",
+        "baseURL": "https://api.z.ai/api/anthropic",
+        "apiKeyRequired": true
+      },
+      "enabled": false,
+      "source": "custom",
+      "models": {
+        "GLM-5.3": {
+          "reasoning": {
+            "enabled": true,
+            "variants": [
+              "low",
+              "max",
+              "high"
+            ],
+            "defaultVariant": "max"
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": false,
+            "priority": 99
+          }
+        },
+        "GLM-5.3-Flash": {
+          "reasoning": {
+            "enabled": true,
+            "variants": [
+              "low",
+              "max",
+              "high"
+            ],
+            "defaultVariant": "max"
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "video"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": false,
+            "priority": 100
+          }
+        },
+        "GLM-5-Turbo": {
+          "name": "glm-5-turbo",
+          "reasoning": {
+            "enabled": true,
+            "variants": [
+              "enabled",
+              "off"
+            ],
+            "defaultVariant": "enabled"
+          },
+          "limit": {
+            "context": 200000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": false,
+            "priority": 101
+          }
+        }
+      },
+      "systemDisabledReason": "coding_plan_not_entitled"
+    },
+    "builtin:zai-start-plan": {
+      "name": "Z.ai - Coding Plan",
+      "kind": "anthropic",
+      "options": {
+        "apiKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWY1YjQ1MzItMDAyOS00ZGI1LTg2ZDAtNjFjZDIyMWMzMDcwIiwic3ViIjoiYWY1YjQ1MzItMDAyOS00ZGI1LTg2ZDAtNjFjZDIyMWMzMDcwIiwiaWF0IjoxNzg3MTE2NTc3fQ.52vo26crUDeK5e9sPpSyWFbVwvpwuE7fqOJfzl2RZsY",
+        "baseURL": "https://zcode.z.ai/api/v1/zcode-plan/anthropic",
+        "apiKeyRequired": true
+      },
+      "enabled": true,
+      "source": "custom",
+      "models": {
+        "GLM-5.3-Flash": {
+          "reasoning": {
+            "enabled": true,
+            "variants": [
+              "low",
+              "max",
+              "high"
+            ],
+            "defaultVariant": "max"
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "video"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": false,
+            "priority": 100
+          }
+        }
+      }
+    },
+    "0a6f2022-e6d1-4888-80a5-3187869d0045": {
+      "name": "4router",
+      "kind": "openai-compatible",
+      "options": {
+        "apiKey": "sk-GGimBXu2SDqwiEheiPvirGFUZY1RfEYSwBSKkG1KTUx0htMj",
+        "baseURL": "https://4router.net/v1",
+        "apiKeyRequired": true
+      },
+      "source": "custom",
+      "models": {
+        "gpt-5.6-luna": {
+          "limit": {
+            "context": 1000000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": true
+          }
+        }
+      }
+    },
+    "db8702bb-6399-462d-93ba-849155e58f6d": {
+      "name": "DeepSeek-V4-Pro",
+      "kind": "openai-compatible",
+      "options": {
+        "apiKey": "sk-BoZzTIWmmyi0pVQcjVgjYNlfBaOrFRvM31JyEjHp8uqHqPKo",
+        "baseURL": "https://api.hcnsec.cn/v1",
+        "apiKeyRequired": true
+      },
+      "source": "custom",
+      "models": {
+        "DeepSeek-V4-Pro": {
+          "name": "deepseek-v4-flash",
+          "reasoning": {
+            "enabled": true,
+            "variants": [
+              "off",
+              "high",
+              "max"
+            ],
+            "defaultVariant": "max"
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 384000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": true
+          }
+        }
+      }
+    },
+    "41026ef0-2cf9-4048-bcbc-6d5964bab86c": {
+      "name": "海獭公益",
+      "kind": "openai-compatible",
+      "options": {
+        "apiKey": "sk-QSSm316BVnIC2Gb0Hu57Q6UE5iYt4LWhgGdb1mcqSTNzyJPu",
+        "baseURL": "https://htai91.com/v1",
+        "apiKeyRequired": true
+      },
+      "source": "custom",
+      "models": {
+        "gk/grok-4.6": {
+          "limit": {
+            "context": 1000000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        }
+      }
+    },
+    "fd6d80ce-da1f-4d9a-8b2a-9e6ff40dfa65": {
+      "name": "synflux.org",
+      "kind": "openai-compatible",
+      "options": {
+        "apiKey": "sk-8ea2887fc58eaf30913ab19478af58a0d1f698f83e1c8a01997b825c10a79956",
+        "baseURL": "https://synflux.org",
+        "apiKeyRequired": true
+      },
+      "source": "custom",
+      "models": {
+        "gpt-5.6-luna": {
+          "limit": {
+            "context": 1000000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "gpt-5.6-sol": {
+          "limit": {
+            "context": 1000000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        }
+      }
+    },
+    "e138aaa8-fc2e-439e-b18d-ae5aeeeff2bd": {
+      "name": "柏",
+      "kind": "openai-compatible",
+      "options": {
+        "apiKey": "sk-6cda7bd3501b0f8f428f99ef79e3fedd373064e1f1d274d42ea1fa9395b13222",
+        "baseURL": "https://api.byeapi.top/v1",
+        "apiKeyRequired": true
+      },
+      "source": "custom",
+      "models": {
+        "gpt-5.6-luna": {
+          "limit": {
+            "context": 1000000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": true
+          }
+        }
+      }
+    },
+    "fcef3c11-6c8f-4a31-941e-cf044c02b465": {
+      "name": "piteai",
+      "kind": "openai-compatible",
+      "options": {
+        "apiKey": "sk-biOOwwqzg1b17FXKMtefjgaoUDoRMIXRZRC2Ss2UwZGszpJ3",
+        "baseURL": "https://www.piteai.com/v1",
+        "apiKeyRequired": true
+      },
+      "source": "custom",
+      "models": {
+        "gpt-5.6-terra": {
+          "limit": {
+            "context": 1000000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": true
+          }
+        }
+      }
+    },
+    "f9d7d53e-cbe7-4c91-9d9e-fa40c43ef925": {
+      "name": "bigmodel",
+      "kind": "openai-compatible",
+      "options": {
+        "apiKey": "sk-nJTtQja2bYKZAck1jX54ojhRtsZsAGtH5h8q10almjc3EEJn",
+        "baseURL": "https://www.bigmodel.ltd/v1",
+        "apiKeyRequired": true
+      },
+      "source": "custom",
+      "models": {
+        "gpt-5.6-luna": {
+          "limit": {
+            "context": 1000000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": true
+          }
+        },
+        "gpt-5.6-terra": {
+          "limit": {
+            "context": 1000000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "zcode": {
+            "modified": true
+          }
+        }
+      }
+    },
+    "6191be1e-72d7-40fa-8f0a-2eb05282b80d": {
+      "name": "cc",
+      "kind": "openai-compatible",
+      "options": {
+        "apiKey": "sk-a10b2ab81baba5e871d082042ddc83d8efe0067d78d890990109261a7a16b60e",
+        "baseURL": "https://api.xiebc.cc",
+        "apiKeyRequired": true
+      },
+      "source": "custom",
+      "models": {
+        "gpt-5.6-luna": {
+          "limit": {
+            "context": 1000000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+        "gpt-5.6-terra": {
+          "limit": {
+            "context": 1000000
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

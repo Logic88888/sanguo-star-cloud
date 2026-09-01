@@ -121,6 +121,12 @@ npm run preview  # 本地预览构建产物
 
 见 [docs/DEVLOG.md](docs/DEVLOG.md)。
 
+## 部署
+
+- GitHub Pages（已上线）：见 [docs/DEPLOY.md](docs/DEPLOY.md)
+- 阿里云 ECS（自有服务器/后端）：见 [docs/DEPLOY-aliyun.md](docs/DEPLOY-aliyun.md)，
+  配套一键脚本 `deploy/go.sh`（初始化 + 部署）与 `deploy/upload-site.sh`（仅更新内容）
+
 ## 致谢
 
 - 灵感与交互参考：[诗云 · Poetry Cloud](https://shiyun.cohenjikan.com)（Cohen）
