@@ -5,6 +5,12 @@
   --line: rgba(120, 140, 190, 0.25);
   --text: #e8ecf5;
   --text-dim: #9aa5bd;
+  /* 金色主题（诗云同款 UI 语言） */
+  --gold: #e8c97e;
+  --gold-bright: #ffd868;
+  --gold-dim: rgba(232, 201, 126, 0.55);
+  --gold-bg: rgba(232, 201, 126, 0.1);
+  --serif-kai: "Kaiti SC", "KaiTi", "STKaiti", "Noto Serif SC", "Source Han Serif SC", "STSong", "SimSun", serif;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,11 +37,12 @@ html, body {
   user-select: none;
 }
 #brand h1 {
-  font-family: "Noto Serif SC", "Source Han Serif SC", "STSong", "SimSun", serif;
+  font-family: var(--serif-kai);
   font-size: 26px;
   font-weight: 600;
   letter-spacing: 6px;
-  text-shadow: 0 0 18px rgba(120, 160, 255, 0.45);
+  color: var(--gold-bright);
+  text-shadow: 0 0 18px rgba(255, 210, 100, 0.4);
 }
 #brand .sub {
   margin-top: 6px;
@@ -67,9 +74,10 @@ html, body {
 }
 #faction-filter button:hover { background: rgba(255, 255, 255, 0.12); }
 #faction-filter button.active {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.45);
-  color: #fff;
+  background: var(--gold-bg);
+  border-color: var(--gold-dim);
+  color: var(--gold-bright);
+  text-shadow: 0 0 8px rgba(255, 210, 100, 0.4);
 }
 #faction-filter i {
   width: 8px;
@@ -100,7 +108,7 @@ html, body {
   backdrop-filter: blur(10px);
   transition: border-color 0.2s;
 }
-#search:focus { border-color: rgba(140, 170, 255, 0.6); }
+#search:focus { border-color: var(--gold-dim); }
 #search-list {
   list-style: none;
   margin-top: 6px;
@@ -165,9 +173,11 @@ html, body {
 
 .panel-head { display: flex; align-items: center; gap: 12px; }
 .panel-head h2 {
-  font-family: "Noto Serif SC", "Source Han Serif SC", "STSong", serif;
-  font-size: 28px;
-  letter-spacing: 3px;
+  font-family: var(--serif-kai);
+  font-size: 30px;
+  letter-spacing: 4px;
+  color: var(--gold-bright);
+  text-shadow: 0 0 16px rgba(255, 210, 100, 0.35);
 }
 .badge {
   display: inline-block;
@@ -296,9 +306,9 @@ html, body {
   transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 #panel-actions button:hover {
-  background: rgba(255, 208, 84, 0.12);
-  border-color: rgba(255, 208, 84, 0.5);
-  color: #ffd054;
+  background: var(--gold-bg);
+  border-color: var(--gold-dim);
+  color: var(--gold-bright);
 }
 
 /* 名言竖排（借鉴诗云的竖排诗文） */
@@ -370,34 +380,129 @@ html, body {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
 }
 .guide-card h2 {
-  font-family: "Noto Serif SC", "STSong", "SimSun", serif;
-  font-size: 30px;
-  letter-spacing: 10px;
+  font-family: var(--serif-kai);
+  font-size: 26px;
+  letter-spacing: 6px;
   text-align: center;
-  margin-bottom: 22px;
-  text-shadow: 0 0 20px rgba(120, 160, 255, 0.5);
+  color: var(--gold-bright);
+  text-shadow: 0 0 20px rgba(255, 210, 100, 0.45);
 }
-.guide-card ol {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.guide-step {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+#guide-text {
+  margin-top: 16px;
+  text-align: center;
   font-size: 14px;
+  line-height: 1.9;
   color: #cfd6e6;
 }
-.guide-card b { color: #fff; margin-right: 6px; }
-#guide-start {
-  display: block;
-  width: 100%;
+.guide-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+.guide-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background 0.25s;
+}
+.guide-dots i.on { background: var(--gold-bright); box-shadow: 0 0 8px rgba(255, 210, 100, 0.6); }
+.guide-btns {
+  display: flex;
+  gap: 12px;
   margin-top: 26px;
+}
+.guide-btns button {
+  flex: 1;
   padding: 11px 0;
-  background: rgba(120, 160, 255, 0.15);
-  border: 1px solid rgba(140, 170, 255, 0.5);
   border-radius: 10px;
-  color: #dbe4ff;
   font-size: 15px;
   letter-spacing: 4px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s;
 }
-#guide-start:hover { background: rgba(120, 160, 255, 0.28); }
+#guide-next {
+  background: var(--gold-bg);
+  border: 1px solid var(--gold-dim);
+  color: var(--gold-bright);
+}
+#guide-next:hover { background: rgba(232, 201, 126, 0.22); }
+#guide-skip.ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text-dim);
+}
+#guide-skip.ghost:hover { border-color: rgba(255, 255, 255, 0.3); color: var(--text); }
+
+/* 画质切换按钮（右上角，诗云同款） */
+#quality-btn {
+  position: absolute;
+  top: 22px;
+  right: 26px;
+  background: rgba(10, 14, 26, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-dim);
+  padding: 6px 16px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.2s, color 0.2s;
+}
+#quality-btn:hover { border-color: var(--gold-dim); color: var(--gold-bright); }
+
+/* H 键隐藏界面（诗云同款） */
+#ui { transition: opacity 0.3s; }
+body.ui-hidden #ui { opacity: 0; pointer-events: none; }
+body.ui-hidden #ui > * { pointer-events: none; }
+
+/* ---------- 移动端响应式（≤768px）：面板改底部抽屉，控件重排 ---------- */
+@media (max-width: 768px) {
+  #brand { top: 14px; left: 16px; }
+  #brand h1 { font-size: 20px; letter-spacing: 4px; }
+  #brand .sub { font-size: 11px; }
+
+  #quality-btn { top: 14px; right: 16px; padding: 5px 12px; font-size: 11px; }
+
+  #search-wrap {
+    top: 64px;
+    left: 16px;
+    right: 16px;
+    transform: none;
+    width: auto;
+  }
+  #faction-filter {
+    top: 118px;
+    left: 16px;
+    gap: 6px;
+  }
+  #faction-filter button { padding: 4px 11px; font-size: 12px; }
+
+  /* 面板：底部抽屉 */
+  #panel {
+    top: auto;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    max-height: 52vh;
+    transform: none;
+    padding: 20px 18px;
+  }
+  #panel.hidden { transform: translateY(110%); opacity: 0; }
+  .panel-head h2 { font-size: 26px; }
+
+  #benshin { left: 16px; bottom: 16px; }
+  #hint { display: none; }
+  .guide-card { padding: 24px 20px; }
+  .guide-card h2 { font-size: 22px; letter-spacing: 4px; }
+}

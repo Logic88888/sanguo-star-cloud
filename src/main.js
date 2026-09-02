@@ -36,7 +36,7 @@ for (const r of relations) {
     console.warn('关系数据未匹配到人物：', r);
     continue;
   }
-  edges.push({ a, b, type: r.type || '关联' });
+  edges.push({ a, b, type: r.type || '关联', auto: r.auto });
 }
 const degree = new Map(characters.map((c) => [c.name, 0]));
 // 剧情度：只统计手工梳理的剧情关系（桃园结义/连环计/宿敌等），用于金晕地标；
@@ -51,9 +51,9 @@ for (const e of edges) {
   }
 }
 // 连线多的人物：星点更大更亮
-const BASE_SIZE = 2.2 * S;
+const BASE_SIZE = 1.9 * S;
 // 密度补偿：人数远超 300 时调暗单星（加色混合下总亮度守恒），避免星域中心过曝
-const DIM = Math.pow(300 / characters.length, 0.32);
+const DIM = Math.pow(300 / characters.length, 0.5);
 function starStyle(name) {
   const d = degree.get(name) || 0;
   const mul = 1 + 0.22 * Math.log2(1 + d);
@@ -113,9 +113,9 @@ const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 const bloomPass = new UnrealBloomPass(
   new THREE.Vector2(window.innerWidth, window.innerHeight),
-  0.45, // strength
+  0.32, // strength
   0.28, // radius（小半径保持远景清晰，不虚化）
-  0.35  // threshold
+  0.5   // threshold（只在亮星处起辉光，避免星云中心整体过曝）
 );
 composer.addPass(bloomPass);
 
@@ -168,13 +168,14 @@ const starTexture = makeStarTexture();
    自定义着色器：每颗星独立的尺寸 aSize 与亮度 aBright（按连线数量缩放） */
 const STARS_VERT = `
   uniform float uScale;
+  uniform float uMaxSize;
   attribute float aSize;
   attribute float aBright;
   varying float vBright;
   void main() {
     vBright = aBright;
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = min(aSize * (uScale / -mv.z), 110.0);
+    gl_PointSize = min(aSize * (uScale / -mv.z), uMaxSize);
     gl_Position = projectionMatrix * mv;
   }
 `;
@@ -189,6 +190,7 @@ const STARS_FRAG = `
 `;
 
 const groups = {}; // faction -> { points, list, mat }
+const starMats = []; // 所有 uScale 材质（主星 + 星尘），resize 时统一更新
 for (const key of Object.keys(FACTIONS)) {
   const list = characters.filter((c) => c.faction === key);
   const positions = new Float32Array(list.length * 3);
@@ -220,6 +222,7 @@ for (const key of Object.keys(FACTIONS)) {
   const mat = new THREE.ShaderMaterial({
     uniforms: {
       uScale: { value: window.innerHeight * 0.5 },
+      uMaxSize: { value: 110.0 },
       uMap: { value: starTexture },
       uColor: { value: FACTIONS[key].color.clone() },
     },
@@ -232,6 +235,53 @@ for (const key of Object.keys(FACTIONS)) {
   const points = new THREE.Points(geo, mat);
   scene.add(points);
   groups[key] = { points, list, mat };
+  starMats.push(mat);
+}
+
+/* ---------------- 势力星尘（装饰介质，不可交互） ----------------
+   每个人物星区填充数千微粒：致密核心 + 稀疏外晕，人物星嵌在连续云体里（诗云质感） */
+const dustGroups = {}; // faction -> { points, count }
+{
+  for (const key of Object.keys(FACTIONS)) {
+    const rng = mulberry32(hashString('dust/' + key));
+    const center = CLUSTER_CENTERS[key];
+    const core = 2000, haloN = 800, count = core + haloN;
+    const positions = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
+    const brights = new Float32Array(count);
+    for (let i = 0; i < count; i++) {
+      const isCore = i < core;
+      const rx = (isCore ? 6.4 : 12.5) * S;
+      const ry = (isCore ? 2.9 : 5.6) * S;
+      positions[i * 3] = center.x + gaussian(rng) * rx;
+      positions[i * 3 + 1] = center.y + gaussian(rng) * ry;
+      positions[i * 3 + 2] = center.z + gaussian(rng) * rx;
+      sizes[i] = (0.45 + rng() * 0.85) * S;
+      brights[i] = (isCore ? 0.05 + rng() * 0.1 : 0.025 + rng() * 0.06) * DIM;
+      if (key === 'other') brights[i] *= 0.3; // 白色三通道全占，重点压暗防止糊成白云
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+    geo.setAttribute('aBright', new THREE.BufferAttribute(brights, 1));
+    const mat = new THREE.ShaderMaterial({
+      uniforms: {
+        uScale: { value: window.innerHeight * 0.5 },
+        uMaxSize: { value: 7.0 }, // 星尘永远是微粒，靠近相机也不放大成斑块
+        uMap: { value: starTexture },
+        uColor: { value: FACTIONS[key].color.clone() },
+      },
+      vertexShader: STARS_VERT,
+      fragmentShader: STARS_FRAG,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const points = new THREE.Points(geo, mat);
+    scene.add(points);
+    dustGroups[key] = { points, count };
+    starMats.push(mat);
+  }
 }
 
 /* ---------------- 关系连线 ----------------
@@ -259,7 +309,7 @@ function factionVisible(f) {
 function rebuildLines() {
   const vis = edges.filter((e) => factionVisible(e.a.faction) && factionVisible(e.b.faction));
   // 关系线越多，单条越淡，避免密集网糊屏
-  lineMat.opacity = vis.length > 1500 ? 0.12 : vis.length > 600 ? 0.2 : vis.length > 200 ? 0.3 : 0.4;
+  lineMat.opacity = vis.length > 1500 ? 0.08 : vis.length > 600 ? 0.14 : vis.length > 200 ? 0.22 : 0.3;
   const pos = new Float32Array(vis.length * 6);
   const col = new Float32Array(vis.length * 6);
   vis.forEach((e, i) => {
@@ -272,6 +322,41 @@ function rebuildLines() {
   });
   lineGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   lineGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+}
+
+/* ---------------- 选中人物的金色光束 ----------------
+   选中后从其星体向所有关系人辐射金色光束（借鉴诗云选中诗人时的诗作放射），
+   透明度在渲染循环里呼吸 */
+const beamGeo = new THREE.BufferGeometry();
+beamGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(0), 3));
+beamGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(0), 3));
+const beamMat = new THREE.LineBasicMaterial({
+  vertexColors: true,
+  transparent: true,
+  opacity: 0.8,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+const beams = new THREE.LineSegments(beamGeo, beamMat);
+beams.frustumCulled = false;
+beams.visible = false;
+scene.add(beams);
+
+function rebuildBeams() {
+  if (!selected) { beams.visible = false; return; }
+  const rels = edges.filter((e) => e.a === selected || e.b === selected);
+  const pos = new Float32Array(rels.length * 6);
+  const col = new Float32Array(rels.length * 6);
+  rels.forEach((e, i) => {
+    const o = e.a === selected ? e.b : e.a;
+    pos.set([selected._pos.x, selected._pos.y, selected._pos.z, o._pos.x, o._pos.y, o._pos.z], i * 6);
+    const oc = FACTIONS[o.faction].color;
+    // 起点亮金，末端渐变为对方势力色
+    col.set([1.0, 0.82, 0.35, oc.r * 0.9, oc.g * 0.9, oc.b * 0.9], i * 6);
+  });
+  beamGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  beamGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  beams.visible = rels.length > 0;
 }
 
 /* ---------------- 大星金晕（剧情关系 ≥5 的名人地标） ---------------- */
@@ -368,6 +453,46 @@ function hideHighlight() {
   highlight.visible = false;
 }
 
+/* ---------------- 星体名字标签（借鉴诗云：近距离星体浮现人名） ----------------
+   剧情地标人物（金晕）常显、相机靠近淡入；悬停/选中人物单独一个标签 */
+const labelCache = new Map(); // id -> CanvasTexture
+function makeNameTexture(c) {
+  if (labelCache.has(c.id)) return labelCache.get(c.id);
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 96;
+  const ctx = canvas.getContext('2d');
+  ctx.font = '600 52px "Kaiti SC", "KaiTi", "STKaiti", "Noto Serif SC", serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(255, 210, 90, 0.9)';
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = '#ffe9b0';
+  ctx.fillText(c.name, 128, 50);
+  const tex = new THREE.CanvasTexture(canvas);
+  labelCache.set(c.id, tex);
+  return tex;
+}
+// 地标人物标签（dStory ≥5，与大星金晕同一批）
+const landmarkLabels = [];
+{
+  const halo = characters.filter((c) => (dStory.get(c.name) || 0) >= 5);
+  for (const c of halo) {
+    const sp = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map: makeNameTexture(c), transparent: true, opacity: 0, depthWrite: false })
+    );
+    sp.position.copy(c._pos);
+    scene.add(sp);
+    landmarkLabels.push({ c, sp });
+  }
+}
+// 悬停 / 选中人物标签
+const focusLabel = new THREE.Sprite(
+  new THREE.SpriteMaterial({ transparent: true, opacity: 0, depthWrite: false })
+);
+focusLabel.visible = false;
+scene.add(focusLabel);
+
 /* ---------------- 拾取 ---------------- */
 const raycaster = new THREE.Raycaster();
 raycaster.params.Points.threshold = 1.5 * S;
@@ -429,8 +554,20 @@ filterBar.children[0].classList.add('active');
 const panel = document.getElementById('panel');
 const panelBody = document.getElementById('panel-body');
 
-function openPanel(c) {
-  selected = c;
+// 生平/名言大文本独立成 bios.json，打开面板时按需 fetch 一次并缓存
+let bios = null;
+let biosPromise = null;
+function ensureBios() {
+  if (bios) return Promise.resolve(bios);
+  if (!biosPromise) {
+    biosPromise = fetch('./data/bios.json')
+      .then((r) => r.json())
+      .then((d) => { bios = d; return d; });
+  }
+  return biosPromise;
+}
+
+function renderPanelBody(c) {
   const f = FACTIONS[c.faction];
   const meta = [
     c.courtesy && `字 ${c.courtesy}`,
@@ -451,6 +588,13 @@ function openPanel(c) {
         })
         .join('')}${more > 0 ? `<li class="rel-more">…另有 ${more} 条关系</li>` : ''}</ul>`
     : '';
+  const b = (bios && bios[c.name]) || {};
+  const bioHtml = b.bio
+    ? `<p class="bio">${b.bio}</p>`
+    : '<p class="bio pending">生平简介撰写中…</p>';
+  const quoteHtml = b.quote
+    ? `<blockquote style="--fc:${f.css}"><span class="qtext">「${b.quote}」</span><span class="src">${b.quoteSource || ''}</span></blockquote>`
+    : '';
   panelBody.innerHTML = `
     <div class="panel-head">
       <span class="badge" style="--fc:${f.css}">${f.label}</span>
@@ -458,21 +602,30 @@ function openPanel(c) {
     </div>
     ${meta ? `<p class="meta-line">${meta}</p>` : ''}
     <h3>生 平</h3>
-    ${c.bio ? `<p class="bio">${c.bio}</p>` : '<p class="bio pending">生平简介撰写中…</p>'}
-    ${c.quote ? `<blockquote style="--fc:${f.css}"><span class="qtext">「${c.quote}」</span><span class="src">${c.quoteSource || ''}</span></blockquote>` : ''}
+    ${bioHtml}
+    ${quoteHtml}
     ${relsHtml}
   `;
+}
+
+function openPanel(c) {
+  selected = c;
   panel.classList.remove('hidden');
+  renderPanelBody(c);
+  // 生平数据到位且面板仍指向当前人物时，补渲染一次完整内容
+  ensureBios().then(() => { if (selected === c) renderPanelBody(c); });
   // 永久分享链接（借鉴诗云 #a=诗人id）
   history.replaceState(null, '', `#a=${c.id}`);
   benshenBtn.textContent = c.id === benshenId ? '★ 已是本命' : '设为本命';
   rebuildLines();
+  rebuildBeams();
   flyTo(c);
 }
 function closePanel() {
   selected = null;
   panel.classList.add('hidden');
   rebuildLines();
+  rebuildBeams();
 }
 // 面板内点击关系人名 → 跳转到该人物
 panelBody.addEventListener('click', (e) => {
@@ -491,11 +644,30 @@ document.getElementById('panel-share').addEventListener('click', () => {
     setTimeout(() => { b.textContent = '⧉ 分享'; }, 1400);
   });
 });
+const flyKeys = new Set();
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closePanel();
     hideSearchList();
+    return;
   }
+  if (e.target && e.target.tagName === 'INPUT') return; // 输入框内不劫持按键
+  // H 隐藏/显示界面（诗云同款）
+  if (e.key === 'h' || e.key === 'H') {
+    document.body.classList.toggle('ui-hidden');
+  }
+  // F 全屏
+  if (e.key === 'f' || e.key === 'F') {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen?.();
+  }
+  // WASD 自由飞行
+  const k = e.key.toLowerCase();
+  if (k === 'w' || k === 'a' || k === 's' || k === 'd') flyKeys.add(k);
+});
+window.addEventListener('keyup', (e) => {
+  const k = e.key.toLowerCase();
+  if (k === 'w' || k === 'a' || k === 's' || k === 'd') flyKeys.delete(k);
 });
 
 /* ---------------- UI：搜索 ---------------- */
@@ -547,8 +719,11 @@ searchInput.addEventListener('blur', () => setTimeout(hideSearchList, 150));
 /* ---------------- UI：悬停提示 ---------------- */
 const tooltip = document.getElementById('tooltip');
 let hovered = null;
+// 触屏（粗指针）无悬停语义：跳过 tooltip / hover 高亮，只保留点击
+const isCoarse = window.matchMedia('(pointer: coarse)').matches;
 
 function updateHover(clientX, clientY) {
+  if (isCoarse) return;
   const c = pickStar(clientX, clientY);
   hovered = c;
   renderer.domElement.style.cursor = c ? 'pointer' : 'grab';
@@ -571,7 +746,7 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
 });
 renderer.domElement.addEventListener('pointerup', (e) => {
   const moved = Math.hypot(e.clientX - downX, e.clientY - downY);
-  if (moved > 6) return; // 视为拖拽
+  if (moved > 8) return; // 视为拖拽（触屏微移容忍稍宽）
   const c = pickStar(e.clientX, e.clientY);
   if (c) { openPanel(c); return; }
   if (selected) { closePanel(); return; }
@@ -598,11 +773,39 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   composer.setSize(window.innerWidth, window.innerHeight);
   const scale = window.innerHeight * 0.5;
-  for (const g of Object.values(groups)) g.mat.uniforms.uScale.value = scale;
+  for (const m of starMats) m.uniforms.uScale.value = scale;
 });
 
 rebuildLines();
 updateBenshen();
+
+/* ---------------- 画质档位（高/中/低，对应 bloom、像素比与星尘密度） ---------------- */
+const QUALITY_LEVELS = [
+  { label: '画质·高', pr: Math.min(window.devicePixelRatio, 2), bloom: true, dust: 1 },
+  { label: '画质·中', pr: Math.min(window.devicePixelRatio, 1.5), bloom: true, dust: 0.6 },
+  { label: '画质·低', pr: 1, bloom: false, dust: 0.35 },
+];
+let qIndex = Math.max(0, QUALITY_LEVELS.findIndex((q) => q.label === localStorage.getItem('sanguo-quality')));
+let useBloom = true;
+const qualityBtn = document.getElementById('quality-btn');
+function applyQuality() {
+  const q = QUALITY_LEVELS[qIndex];
+  qualityBtn.textContent = q.label;
+  renderer.setPixelRatio(q.pr);
+  composer.setPixelRatio(q.pr);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+  useBloom = q.bloom;
+  for (const g of Object.values(dustGroups)) {
+    g.points.geometry.setDrawRange(0, Math.floor(g.count * q.dust));
+  }
+  localStorage.setItem('sanguo-quality', q.label);
+}
+qualityBtn.addEventListener('click', () => {
+  qIndex = (qIndex + 1) % QUALITY_LEVELS.length;
+  applyQuality();
+});
+applyQuality();
 
 // 分享链接直达：#a=人物id（载入时解析 + hash 变化时响应）
 function openFromHash() {
@@ -621,18 +824,45 @@ window.addEventListener("hashchange", openFromHash);
   }
 }
 
-// 首次引导
+// 首次引导（分步卡片，诗云同款：跳过 / 下一步 / 指示点）
 const guide = document.getElementById('guide');
-if (!localStorage.getItem('sanguo-guide-seen')) {
-  setTimeout(() => guide.classList.remove('hidden'), 700);
+const GUIDE_STEPS = [
+  { title: '三国星云 · 一人一星', text: '这里的每颗星，是一位真实的三国人物。' },
+  { title: '旋转 · 缩放 · 点击', text: '拖拽旋转整片星空，滚轮拉近拉远；点击星星，读这位人物的生平与关系。' },
+  { title: '虚空寻访', text: '点击星空空白，随机寻访一位人物；搜索与势力筛选，可快速定位三百英雄。' },
+];
+let guideStep = 0;
+function renderGuide() {
+  const s = GUIDE_STEPS[guideStep];
+  document.getElementById('guide-step').textContent = `${guideStep + 1} / ${GUIDE_STEPS.length}`;
+  document.getElementById('guide-title').textContent = s.title;
+  document.getElementById('guide-text').textContent = s.text;
+  document.getElementById('guide-next').textContent =
+    guideStep === GUIDE_STEPS.length - 1 ? '开 始 探 索' : '下一步';
+  for (const [i, d] of [...document.getElementById('guide-dots').children].entries()) {
+    d.classList.toggle('on', i === guideStep);
+  }
 }
-document.getElementById('guide-start').addEventListener('click', () => {
+function closeGuide() {
   localStorage.setItem('sanguo-guide-seen', '1');
   guide.classList.add('hidden');
+}
+document.getElementById('guide-next').addEventListener('click', () => {
+  guideStep += 1;
+  if (guideStep >= GUIDE_STEPS.length) closeGuide();
+  else renderGuide();
 });
+document.getElementById('guide-skip').addEventListener('click', closeGuide);
+if (!localStorage.getItem('sanguo-guide-seen')) {
+  renderGuide();
+  setTimeout(() => guide.classList.remove('hidden'), 700);
+}
 
+let lastT = 0;
 function animate(t) {
   requestAnimationFrame(animate);
+  const dt = Math.min(0.05, lastT ? (t - lastT) / 1000 : 0.016);
+  lastT = t;
 
   if (fly) {
     const p = Math.min(1, (performance.now() - fly.t0) / fly.dur);
@@ -640,6 +870,26 @@ function animate(t) {
     camera.position.lerpVectors(fly.fromPos, fly.toPos, e);
     controls.target.lerpVectors(fly.fromTarget, fly.toTarget, e);
     if (p >= 1) fly = null;
+  }
+  // WASD 自由飞行：沿视线水平方向前后、沿右方向左右平移
+  if (flyKeys.size) {
+    controls.autoRotate = false;
+    const fwd = new THREE.Vector3();
+    camera.getWorldDirection(fwd);
+    fwd.y = 0;
+    if (fwd.lengthSq() < 1e-4) fwd.set(0, 0, -1); // 近乎垂直俯视时取默认朝向
+    fwd.normalize();
+    const right = new THREE.Vector3().crossVectors(fwd, camera.up).normalize();
+    const mv = new THREE.Vector3();
+    if (flyKeys.has('w')) mv.add(fwd);
+    if (flyKeys.has('s')) mv.sub(fwd);
+    if (flyKeys.has('d')) mv.add(right);
+    if (flyKeys.has('a')) mv.sub(right);
+    if (mv.lengthSq() > 0) {
+      mv.normalize().multiplyScalar(dt * 18 * S);
+      camera.position.add(mv);
+      controls.target.add(mv); // 相机与目标一起平移，视角不翻转
+    }
   }
   controls.update();
 
@@ -661,6 +911,38 @@ function animate(t) {
     hideHighlight();
   }
 
-  composer.render();
+  // 金色光束呼吸
+  if (beams.visible) beamMat.opacity = 0.55 + Math.sin(t * 0.004) * 0.25;
+
+  // 地标人物名字标签：相机靠近淡入，屏幕大小恒定；被悬停/选中时让位给 focusLabel
+  for (const { c, sp } of landmarkLabels) {
+    if (!factionVisible(c.faction) || c === focus) {
+      sp.material.opacity *= 0.9;
+      continue;
+    }
+    const d = camera.position.distanceTo(sp.position);
+    const target = THREE.MathUtils.clamp((95 * S - d) / (35 * S), 0, 1) * 0.85;
+    sp.material.opacity += (target - sp.material.opacity) * 0.08;
+    const s = d * 0.052;
+    sp.scale.set(s * 2.67, s, 1);
+    sp.position.set(c._pos.x, c._pos.y + d * 0.055, c._pos.z);
+  }
+
+  // 悬停 / 选中人物名字标签
+  if (focus && focus._pos && factionVisible(focus.faction)) {
+    focusLabel.material.map = makeNameTexture(focus);
+    focusLabel.material.opacity = Math.min(1, focusLabel.material.opacity + 0.12);
+    const d = camera.position.distanceTo(focus._pos);
+    const s = d * 0.06;
+    focusLabel.scale.set(s * 2.67, s, 1);
+    focusLabel.position.set(focus._pos.x, focus._pos.y + d * 0.075, focus._pos.z);
+    focusLabel.visible = true;
+  } else {
+    focusLabel.material.opacity = 0;
+    focusLabel.visible = false;
+  }
+
+  if (useBloom) composer.render();
+  else renderer.render(scene, camera);
 }
 animate();
